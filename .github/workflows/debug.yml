@@ -1,0 +1,21 @@
+name: Debug with Serveo
+on: [push, workflow_dispatch]
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup SSH and expose with Serveo
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server
+          echo "root:password123" | sudo chpasswd
+          sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+          sudo sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+          sudo service ssh start
+          
+          # Проброс порта через Serveo (автоматически выберет случайный subdomain)
+          ssh -R 80:localhost:22 serveo.net
+          
